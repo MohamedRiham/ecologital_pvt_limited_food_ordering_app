@@ -1,3 +1,5 @@
+import 'package:ecologital_pvt_limited_food_ordering_app/models/cart_item.dart';
+import 'package:ecologital_pvt_limited_food_ordering_app/models/sizes.dart';
 import 'package:ecologital_pvt_limited_food_ordering_app/models/data_box.dart';
 import 'package:ecologital_pvt_limited_food_ordering_app/models/category.dart';
 import 'package:ecologital_pvt_limited_food_ordering_app/models/item.dart';
@@ -12,6 +14,12 @@ class FoodDataProvider with ChangeNotifier {
   List<DataBox> dataBoxList = [];
   List<Item> itemList = [];
   List<Modifier> modifierGroupList = [];
+  final List<Sizes> sizes = [
+    Sizes(sizeName: 'Small', isSelected: false),
+    Sizes(sizeName: 'Medium', isSelected: true),
+    Sizes(sizeName: 'Large', isSelected: false)
+  ];
+  List<CartItem> cartItems = [];
   Future<void> loadFoodData() async {
     try {
       // Load JSON string from the assets
@@ -72,5 +80,9 @@ class FoodDataProvider with ChangeNotifier {
         [];
 
     notifyListeners();
+  }
+
+  void addToCart(CartItem cartItem) {
+    cartItems.add(cartItem);
   }
 }

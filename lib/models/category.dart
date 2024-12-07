@@ -4,7 +4,6 @@ class MenuCategory {
   String? menuId;
   String? storeId;
   String? title;
-  MenuCategory({this.id, this.menuId, this.menuCategoryId, this.storeId});
 
   MenuCategory.fromJson(dynamic json) {
     id = json['ID'];

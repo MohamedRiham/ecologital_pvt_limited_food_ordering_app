@@ -9,6 +9,7 @@ class Item {
   int? price;
   bool? isDealProduct;
   String? modifierGroupId;
+int? totalReviews;
 
   Item.fromJson(dynamic json) {
     id = json['ID'];
@@ -23,5 +24,6 @@ class Item {
     modifierGroupId = json['ModifierGroupRules']['IDs'] != null
         ? json['ModifierGroupRules']['IDs'][0]
         : null;
+    totalReviews = json['TotalReviews'];
   }
 }

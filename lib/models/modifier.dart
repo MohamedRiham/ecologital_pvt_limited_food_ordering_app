@@ -4,14 +4,7 @@ class Modifier {
   String? title;
   String? storeId;
   String? displayType;
-
-  Modifier(
-      {this.id,
-      this.modifierGroupId,
-      this.title,
-      this.storeId,
-      this.displayType});
-
+bool? isChecked = false;
   Modifier.fromJson(dynamic json) {
     id = json['ID'];
     modifierGroupId = json['ModifierGroupID'];

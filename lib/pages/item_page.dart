@@ -1,3 +1,4 @@
+import 'package:ecologital_pvt_limited_food_ordering_app/models/cart_item.dart';
 import 'package:flutter/material.dart';
 import 'package:ecologital_pvt_limited_food_ordering_app/provider/food_data_provider.dart';
 import 'package:provider/provider.dart';
@@ -12,18 +13,30 @@ class ItemPage extends StatefulWidget {
 
 class _ItemPageState extends State<ItemPage> {
   late FoodDataProvider foodDataProvider;
+  late int price;
+  int qty = 1;
+  TextEditingController textEditingController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    price = widget.item.price == 0 || widget.item.price == null
+        ? 500
+        : widget.item.price!;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       foodDataProvider.getModifierGroups(widget.item.modifierGroupId ?? '_');
     });
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    textEditingController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     foodDataProvider = Provider.of<FoodDataProvider>(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -63,7 +76,7 @@ class _ItemPageState extends State<ItemPage> {
                   Row(
                     children: [
                       Text(
-                        'RS ${widget.item.price.toString()}',
+                        'RS $price',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -72,7 +85,8 @@ class _ItemPageState extends State<ItemPage> {
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.star, color: Colors.yellow, size: 20),
-                      Text('5.0', style: TextStyle(fontSize: 16)),
+                      Text(widget.item.totalReviews.toString(),
+                          style: const TextStyle(fontSize: 16)),
                     ],
                   ),
                 ],
@@ -95,7 +109,7 @@ class _ItemPageState extends State<ItemPage> {
               length: 4,
               child: Column(
                 children: [
-                  TabBar(
+                  const TabBar(
                     indicatorColor: Colors.green,
                     labelColor: Colors.black,
                     unselectedLabelColor: Colors.grey,
@@ -109,7 +123,7 @@ class _ItemPageState extends State<ItemPage> {
                   const SizedBox(height: 16),
 
                   // Tab Content
-                  Container(
+                  SizedBox(
                     height: 100,
                     child: TabBarView(
                       children: [
@@ -142,9 +156,9 @@ class _ItemPageState extends State<ItemPage> {
                             ],
                           ),
                         ),
-                        Center(child: Text('Nutritional Info')),
-                        Center(child: Text('Instructions')),
-                        Center(child: Text('Allergens Info')),
+                        const Center(child: Text('Nutritional Info')),
+                        const Center(child: Text('Instructions')),
+                        const Center(child: Text('Allergens Info')),
                       ],
                     ),
                   ),
@@ -161,15 +175,20 @@ class _ItemPageState extends State<ItemPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Toppings',
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    ...foodDataProvider.modifierGroupList.map((value) {
-                      return _buildToppingRow(value.title ?? '__', 0);
-                    }).toList(),
+                    ...foodDataProvider.modifierGroupList
+                        .asMap()
+                        .entries
+                        .map((entry) {
+                      final index = entry.key; // Get the index
+                      final value = entry.value; // Get the value
+                      return _buildToppingRow(value.title ?? '__', 0, index);
+                    }),
                   ],
                 ),
               ),
@@ -182,16 +201,19 @@ class _ItemPageState extends State<ItemPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Choose Size',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildSizeOption('Small'),
-                      _buildSizeOption('Medium', selected: true),
-                      _buildSizeOption('Large'),
+                      ...foodDataProvider.sizes.asMap().entries.map((entry) {
+                        final index = entry.key; // Get the index
+                        final value = entry.value; // Get the value
+                        return _buildSizeOption(
+                            value.sizeName, value.isSelected!, index);
+                      }),
                     ],
                   ),
                 ],
@@ -206,12 +228,13 @@ class _ItemPageState extends State<ItemPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Add Comments (Optional)',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextField(
+                    controller: textEditingController,
                     decoration: InputDecoration(
                       hintText: 'Write here',
                       border: OutlineInputBorder(
@@ -234,13 +257,25 @@ class _ItemPageState extends State<ItemPage> {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.remove),
-                        onPressed: () {},
+                        icon: const Icon(Icons.remove),
+                        onPressed: () {
+                          setState(() {
+                            if (qty > 1) {
+                              qty -= 1;
+                              _updatePrice();
+                            }
+                          });
+                        },
                       ),
-                      Text('1', style: TextStyle(fontSize: 18)),
+                      Text(qty.toString(), style: TextStyle(fontSize: 18)),
                       IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {},
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            qty += 1;
+                            _updatePrice();
+                          });
+                        },
                       ),
                     ],
                   ),
@@ -253,9 +288,18 @@ class _ItemPageState extends State<ItemPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {},
-                    child: Text('Add to Cart ₹1260',
-                        style: TextStyle(fontSize: 16)),
+                    onPressed: () {
+                      CartItem cartItem = CartItem(
+                          title: widget.item.title ?? '__',
+                          price: price,
+                          qty: qty,
+                          comment: textEditingController.text.trim());
+                      foodDataProvider.addToCart(cartItem);
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: Text('Add to Cart RS: $price',
+                        style: const TextStyle(fontSize: 16)),
                   ),
                 ],
               ),
@@ -268,35 +312,66 @@ class _ItemPageState extends State<ItemPage> {
     );
   }
 
-  Widget _buildToppingRow(String name, int quantity) {
+  Widget _buildToppingRow(String name, int quantity, int indexNumber) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Checkbox(
-          value: false,
-          onChanged: (value) {},
+          value: foodDataProvider.modifierGroupList[indexNumber].isChecked,
+          onChanged: (value) {
+            setState(() {
+              foodDataProvider.modifierGroupList[indexNumber].isChecked = value;
+            });
+          },
         ),
-        Text(name, style: TextStyle(fontSize: 16)),
+        Text(name, style: const TextStyle(fontSize: 16)),
         Row(
           children: [
-            IconButton(icon: Icon(Icons.remove), onPressed: () {}),
-            Text(quantity.toString(), style: TextStyle(fontSize: 16)),
-            IconButton(icon: Icon(Icons.add), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.remove), onPressed: () {}),
+            Text(quantity.toString(), style: const TextStyle(fontSize: 16)),
+            IconButton(icon: const Icon(Icons.add), onPressed: () {}),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildSizeOption(String size, {bool selected = false}) {
+  Widget _buildSizeOption(String size, bool selected, int index) {
     return Row(
       children: [
         Checkbox(
           value: selected,
-          onChanged: (value) {},
+          onChanged: (value) {
+            setState(() {
+              for (var size in foodDataProvider.sizes) {
+                size.isSelected = false; // Uncheck all sizes
+              }
+              foodDataProvider.sizes[index].isSelected = value;
+              _updatePrice();
+            });
+          },
         ),
         Text(size),
       ],
     );
+  }
+
+  void _updatePrice() {
+    // Base price
+    int basePrice = widget.item.price ?? 500;
+
+    // Adjust price based on the selected size
+    for (var size in foodDataProvider.sizes) {
+      if (size.isSelected == true) {
+        if (size.sizeName == 'Large') {
+          basePrice += 500; // Add 500 for Large
+        } else if (size.sizeName == 'Small') {
+          basePrice -= 100; // Subtract 100 for Small
+        }
+      }
+    }
+
+    // Final price = base price * quantity
+    price = basePrice * qty;
   }
 }

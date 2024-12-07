@@ -1,3 +1,4 @@
+import 'package:ecologital_pvt_limited_food_ordering_app/pages/card_page.dart';
 import 'package:ecologital_pvt_limited_food_ordering_app/pages/item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,25 +28,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Provider.of<FoodDataProvider>(context, listen: false)
           .loadFoodData();
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -104,6 +95,23 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CartPage(
+                    cartItem:
+                        Provider.of<FoodDataProvider>(context, listen: false)
+                            .cartItems)),
+          );
+        },
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(
+          Icons.shopping_cart,
+          size: 30.0,
+        ),
       ),
     );
   }

@@ -5,8 +5,6 @@ class Menu {
   String? storeId;
   String? title;
 
-  Menu({this.id, this.menuId, this.storeId, this.title, this.verticalId});
-
   Menu.fromJson(dynamic json) {
     id = json['ID'];
     menuId = json['MenuID'];
