@@ -51,7 +51,11 @@ class CartPage extends StatelessWidget {
                 elevation: 6,
               ),
               onPressed: () {
-                // Handle checkout logic here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('This option coming soon'),
+                  ),
+                );
               },
               child: const Text(
                 'Proceed to Checkout',

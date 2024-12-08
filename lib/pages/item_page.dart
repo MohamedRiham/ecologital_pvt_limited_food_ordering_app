@@ -16,7 +16,7 @@ class _ItemPageState extends State<ItemPage> {
   late int price;
   int qty = 1;
   TextEditingController textEditingController = TextEditingController();
-
+  int toppingPrice = 0;
   @override
   void initState() {
     super.initState();
@@ -57,6 +57,15 @@ class _ItemPageState extends State<ItemPage> {
                   width: double.infinity,
                   height: 200,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: double.infinity,
+                      height: 200,
+                      color: Colors.grey,
+                      child: const Icon(Icons.broken_image,
+                          size: 50, color: Colors.white),
+                    );
+                  },
                 ),
               ],
             ),
@@ -187,7 +196,7 @@ class _ItemPageState extends State<ItemPage> {
                         .map((entry) {
                       final index = entry.key; // Get the index
                       final value = entry.value; // Get the value
-                      return _buildToppingRow(value.title ?? '__', 0, index);
+                      return _buildToppingRow(value.title ?? '__', 1, index);
                     }),
                   ],
                 ),
@@ -259,22 +268,25 @@ class _ItemPageState extends State<ItemPage> {
                       IconButton(
                         icon: const Icon(Icons.remove),
                         onPressed: () {
-                          setState(() {
-                            if (qty > 1) {
+                          if (qty > 1) {
+                            setState(() {
                               qty -= 1;
                               _updatePrice();
-                            }
-                          });
+                            });
+                          }
                         },
                       ),
-                      Text(qty.toString(), style: TextStyle(fontSize: 18)),
+                      Text(qty.toString(),
+                          style: const TextStyle(fontSize: 18)),
                       IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: () {
-                          setState(() {
-                            qty += 1;
-                            _updatePrice();
-                          });
+                          if (qty < 5) {
+                            setState(() {
+                              qty += 1;
+                              _updatePrice();
+                            });
+                          }
                         },
                       ),
                     ],
@@ -321,6 +333,12 @@ class _ItemPageState extends State<ItemPage> {
           onChanged: (value) {
             setState(() {
               foodDataProvider.modifierGroupList[indexNumber].isChecked = value;
+              if (value == true) {
+                toppingPrice += 200;
+              } else {
+                toppingPrice -= 200;
+              }
+              _updatePrice();
             });
           },
         ),
@@ -357,9 +375,9 @@ class _ItemPageState extends State<ItemPage> {
   }
 
   void _updatePrice() {
-    // Base price
-    int basePrice = widget.item.price ?? 500;
-
+    int basePrice = widget.item.price == 0 || widget.item.price == null
+        ? 500
+        : widget.item.price!;
     // Adjust price based on the selected size
     for (var size in foodDataProvider.sizes) {
       if (size.isSelected == true) {
@@ -370,8 +388,7 @@ class _ItemPageState extends State<ItemPage> {
         }
       }
     }
-
     // Final price = base price * quantity
-    price = basePrice * qty;
+    price = basePrice * qty + toppingPrice;
   }
 }

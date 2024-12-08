@@ -4,7 +4,7 @@ class Modifier {
   String? title;
   String? storeId;
   String? displayType;
-bool? isChecked = false;
+  bool? isChecked = false;
   Modifier.fromJson(dynamic json) {
     id = json['ID'];
     modifierGroupId = json['ModifierGroupID'];
